@@ -3,7 +3,7 @@ import ScoreBadge from '@/components/ScoreBadge'
 import AIAnalysis from '@/components/AIAnalysis'
 
 async function getPolitician(id: string) {
-  const res = await fetch(`http://localhost:3000/api/politicians/${id}`, {
+const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/politicians/${id}`, {
     cache: 'no-store',
   })
   if (!res.ok) return null
