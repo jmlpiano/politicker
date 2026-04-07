@@ -1,65 +1,198 @@
-import Image from "next/image";
+import SwampChart from '@/components/SwampChart'
+import PoliticianCard from '@/components/PoliticianCard'
 
-export default function Home() {
+async function getPoliticians() {
+  const res = await fetch('http://localhost:3000/api/politicians', {
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error('Failed to fetch politicians')
+  return res.json()
+}
+
+export default async function HomePage() {
+  const politicians = await getPoliticians()
+
+  const withScores = politicians.filter((p: any) => p.integrityScore)
+  const avgIntegrity = withScores.length
+    ? Math.round(withScores.reduce((sum: number, p: any) => sum + p.integrityScore.integrityScore, 0) / withScores.length)
+    : null
+
+  const mostBarnacled = politicians.reduce((max: any, p: any) =>
+    p.barnacleScore && (!max.barnacleScore || p.barnacleScore.barnacleScore > max.barnacleScore.barnacleScore) ? p : max
+  , politicians[0])
+
+  const sleaziest = withScores.reduce((max: any, p: any) =>
+    p.integrityScore.sleazeScore > (max.integrityScore?.sleazeScore ?? 0) ? p : max
+  , withScores[0])
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Header */}
+      <header
+        style={{
+          borderBottom: '1px solid var(--border)',
+          padding: '0 32px',
+          background: 'var(--bg-secondary)',
+        }}
+      >
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+              <h1
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.8rem',
+                  fontWeight: 900,
+                  color: 'var(--text-primary)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Politicker
+              </h1>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.65rem',
+                  color: 'var(--red)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  fontWeight: 600,
+                  border: '1px solid var(--red-dim)',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                }}
+              >
+                Beta
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Government accountability — votes, donors, integrity scores
+            </p>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
+            {politicians.length} politicians tracked
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </header>
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px' }}>
+
+        {/* Stats bar */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '16px',
+            marginBottom: '40px',
+          }}
+        >
+          {[
+            {
+              label: 'Avg Integrity Score',
+              value: avgIntegrity ?? '—',
+              sub: 'across all tracked politicians',
+              color: avgIntegrity && avgIntegrity >= 60 ? 'var(--green)' : 'var(--amber)',
+            },
+            {
+              label: 'Most Barnacled',
+              value: mostBarnacled?.name?.split(' ').pop() ?? '—',
+              sub: mostBarnacled?.barnacleScore ? `${mostBarnacled.barnacleScore.barnacleScore}/100 barnacle score` : '',
+              color: 'var(--amber)',
+            },
+            {
+              label: 'Highest Sleaze',
+              value: sleaziest?.name?.split(' ').pop() ?? '—',
+              sub: sleaziest?.integrityScore ? `${sleaziest.integrityScore.sleazeScore}/100 sleaze score` : '',
+              color: 'var(--red)',
+            },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border)',
+                borderRadius: '10px',
+                padding: '20px',
+              }}
+            >
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
+                {stat.label}
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 700, color: stat.color, marginBottom: '4px' }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                {stat.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Swamp Chart */}
+        <div style={{ marginBottom: '40px' }}>
+          <SwampChart politicians={politicians} />
+        </div>
+
+        {/* Section header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.2rem',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            All Politicians
+          </h2>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+        </div>
+
+        {/* Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '16px',
+          }}
+        >
+          {politicians.map((p: any, i: number) => (
+            <PoliticianCard
+              key={p.id}
+              id={p.id}
+              name={p.name}
+              initials={p.initials}
+              party={p.party}
+              role={p.role}
+              jurisdiction={p.jurisdiction}
+              country={p.country}
+              since={p.since}
+              integrityScore={p.integrityScore}
+              barnacleScore={p.barnacleScore}
+              index={i}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
-    </div>
-  );
+
+        {/* Footer */}
+        <div
+          style={{
+            marginTop: '60px',
+            paddingTop: '24px',
+            borderTop: '1px solid var(--border)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            POLITICKER.IO — DEMO DATA
+          </span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            Powered by Claude AI
+          </span>
+        </div>
+      </div>
+    </main>
+  )
 }

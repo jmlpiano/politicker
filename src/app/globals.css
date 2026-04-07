@@ -1,26 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #0d0d0f;
+  --bg-secondary: #141418;
+  --bg-card: #1a1a20;
+  --bg-card-hover: #1f1f28;
+  --border: #2a2a35;
+  --border-accent: #3a3a48;
+
+  --text-primary: #f0ede8;
+  --text-secondary: #9b9aaa;
+  --text-muted: #5a5870;
+
+  --red: #e63946;
+  --red-dim: #7a1e25;
+  --amber: #f4a261;
+  --amber-dim: #7a4e20;
+  --green: #52b788;
+  --green-dim: #1e5c3a;
+  --blue: #4895ef;
+  --blue-dim: #1a3a6e;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'DM Sans', Helvetica, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+.font-body { font-family: var(--font-body); }
+
+.score-high { color: var(--green); }
+.score-mid { color: var(--amber); }
+.score-low { color: var(--red); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.4s ease forwards;
 }
