@@ -1,5 +1,6 @@
 import SwampChart from '@/components/SwampChart'
 import PoliticianCard from '@/components/PoliticianCard'
+import EntrenchmentChart from '@/components/EntrenchmentChart'
 
 async function getPoliticians() {
 const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/politicians`, {
@@ -38,17 +39,17 @@ export default async function HomePage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '1.8rem',
-                  fontWeight: 900,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Politicker
-              </h1>
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.8rem',
+                fontWeight: 900,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              PoliticianGrader
+            </h1>
               <span
                 style={{
                   fontFamily: 'var(--font-mono)',
@@ -128,9 +129,10 @@ export default async function HomePage() {
           ))}
         </div>
 
-        {/* Swamp Chart */}
-        <div style={{ marginBottom: '40px' }}>
+        {/* Charts */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '40px' }}>
           <SwampChart politicians={politicians} />
+          <EntrenchmentChart politicians={politicians} />
         </div>
 
         {/* Section header */}
@@ -186,7 +188,7 @@ export default async function HomePage() {
           }}
         >
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            POLITICKER.IO — DEMO DATA
+            POLITICIANGRADER.COM — DEMO DATA
           </span>
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
             Powered by Claude AI

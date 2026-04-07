@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Politicker — Government Accountability',
-  description: 'Track politicians\' voting records, donor influence, and integrity scores.',
+  title: 'PoliticianGrader — Government Accountability',
+  description: 'Track politicians\' voting records, donor influence, integrity scores, and entrenchment ratings.',
 }
 
 export default function RootLayout({
