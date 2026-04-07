@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Politician {
+  id                String   @id @default(cuid())
+  name              String
+  initials          String
+  party             String
+  level             String
+  country           String
+  jurisdiction      String
+  role              String
+  since             Int
+  bio               String?
+  birthYear         Int?
+  firstElectedYear  Int?
+  prePoliticsCareer String?
+  estimatedNetWorth Float?
+  imageUrl          String?
+
+  votes         Vote[]
+  statements    Statement[]
+  contributions DonorContribution[]
+  scores        IntegrityScore[]
+  barnacleScores BarnacleScore[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vote {
+  id           String     @id @default(cuid())
+  politician   Politician @relation(fields: [politicianId], references: [id])
+  politicianId String
+  bill         String
+  billId       String?
+  issue        String
+  vote         String
+  date         DateTime
+  description  String
+
+  alignments VoteStatementAlignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Statement {
+  id           String     @id @default(cuid())
+  politician   Politician @relation(fields: [politicianId], references: [id])
+  politicianId String
+  content      String
+  issue        String
+  source       String?
+  date         DateTime?
+
+  alignments VoteStatementAlignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VoteStatementAlignment {
+  id          String    @id @default(cuid())
+  vote        Vote      @relation(fields: [voteId], references: [id])
+  voteId      String
+  statement   Statement @relation(fields: [statementId], references: [id])
+  statementId String
+  aligned     Boolean
+  explanation String
+
+  createdAt DateTime @default(now())
+}
+
+model Donor {
+  id       String @id @default(cuid())
+  name     String
+  industry String
+  type     String
+
+  contributions DonorContribution[]
+
+  createdAt DateTime @default(now())
+}
+
+model DonorContribution {
+  id           String     @id @default(cuid())
+  donor        Donor      @relation(fields: [donorId], references: [id])
+  donorId      String
+  politician   Politician @relation(fields: [politicianId], references: [id])
+  politicianId String
+  amount       Float
+  year         Int
+  cycle        String?
+
+  createdAt DateTime @default(now())
+}
+
+model IntegrityScore {
+  id           String     @id @default(cuid())
+  politician   Politician @relation(fields: [politicianId], references: [id])
+  politicianId String
+
+  integrityScore Float
+  sleazeScore    Float
+  alignmentRate  Float
+  donorInfluence Float
+  flipFrequency  Float
+  partySpectrum  Float
+  integrityAxis  Float
+
+  calculatedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BarnacleScore {
+  id           String     @id @default(cuid())
+  politician   Politician @relation(fields: [politicianId], references: [id])
+  politicianId String
+
+  // Composite scores
+  barnacleScore         Float   // 0–100 (higher = more barnacled/entrenched)
+  citizenStatesmanScore Float   // 0–100 (higher = better citizen statesman)
+
+  // Raw inputs used in calculation
+  tenureYears        Int     // total years across all elected offices
+  privateCareerYears Int     // years in private sector before first office
+  citizenRatio       Float   // privateCareerYears / totalAdultYears (post-age-22)
+
+  // Sub-scores (components of barnacleScore)
+  tenureScore        Float   // 0–25: accelerating curve on years in office
+  citizenRatioScore  Float   // 0–20: penalty for career-politician trajectory
+  wealthGapScore     Float   // 0–25: net worth vs. cumulative salary ceiling
+  revolvingDoorScore Float   // 0–15: staff/lobbyist churn signal
+  entrenchmentScore  Float   // 0–15: electoral margins, unopposed primaries
+
+  // Claude-generated explanation
+  aiNarrative String?
+
+  calculatedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
