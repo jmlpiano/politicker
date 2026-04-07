@@ -92,7 +92,7 @@ Estimated net worth: ${politician.estimatedNetWorth ? '$' + politician.estimated
 Years in office: ${politician.firstElectedYear ? 2026 - politician.firstElectedYear : 'Unknown'}
 `.trim()
 
-    const prompt = `You are a nonpartisan political analyst for Politicker.io, a government accountability platform. Analyze this politician's record and produce a sharp, evidence-based integrity assessment.
+    const prompt = `You are a nonpartisan political analyst for PoliticianGrader.com, a government accountability platform. Analyze this politician's record and produce a sharp, evidence-based integrity assessment.
 
 POLITICIAN: ${politician.name}
 Role: ${politician.role}, ${politician.jurisdiction} (${politician.party})
@@ -114,15 +114,17 @@ ${statementsSummary}
 DONOR CONTRIBUTIONS:
 ${donorSummary || 'No donor data available.'}
 
-Write a 3-paragraph analysis:
+Write exactly 4 paragraphs separated by a blank line. No headers, no bold, no markdown.
 
 Paragraph 1 — VOTING RECORD: What does their actual voting record reveal? Call out specific votes. Note any pattern between donor money and vote direction.
 
 Paragraph 2 — WORDS VS ACTIONS: How well do their public statements match their votes? Highlight the most striking alignments or contradictions with specific examples.
 
-Paragraph 3 — THE BOTTOM LINE: A blunt, plain-English verdict on this politician. Factor in their entrenchment — how long they've been in office, what they did before politics, and whether their net worth trajectory raises questions. End with one sentence that a voter could remember.
+Paragraph 3 — THE BOTTOM LINE: A blunt, plain-English verdict on this politician's integrity. Name specific votes, donors, contradictions. Do not hedge.
 
-Be direct. Name specific votes, specific donors, specific contradictions. Do not hedge. This is accountability journalism, not a press release.`
+Paragraph 4 — ENTRENCHMENT VERDICT: Focus entirely on how long they've been in office, what they did before politics, and whether their net worth trajectory raises questions. Use the Barnacle Score data. End with one sentence a voter could remember about whether this person has become part of the problem simply by staying too long.
+
+Be direct. This is accountability journalism, not a press release.`
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -135,10 +137,17 @@ Be direct. Name specific votes, specific donors, specific contradictions. Do not
       .map((block) => (block as { type: 'text'; text: string }).text)
       .join('')
 
+    const paragraphs = analysisText.split('\n\n').filter((p: string) => p.trim())
+    const barnacleNarrative = paragraphs.length >= 4 ? paragraphs[paragraphs.length - 1] : null
+    const mainAnalysis = paragraphs.length >= 4
+      ? paragraphs.slice(0, -1).join('\n\n')
+      : analysisText
+
     return NextResponse.json({
       politicianId,
       name: politician.name,
-      analysis: analysisText,
+      analysis: mainAnalysis,
+      barnacleNarrative,
       model: message.model,
       usage: message.usage,
     })
