@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Politician {
-  id                String   @id @default(cuid())
+  id                String              @id @default(cuid())
   name              String
   initials          String
   party             String
@@ -18,25 +18,22 @@ model Politician {
   role              String
   since             Int
   bio               String?
+  imageUrl          String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
   birthYear         Int?
+  estimatedNetWorth Float?
   firstElectedYear  Int?
   prePoliticsCareer String?
-  estimatedNetWorth Float?
-  imageUrl          String?
-
-  votes         Vote[]
-  statements    Statement[]
-  contributions DonorContribution[]
-  scores        IntegrityScore[]
-  barnacleScores BarnacleScore[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  barnacleScores    BarnacleScore[]
+  contributions     DonorContribution[]
+  scores            IntegrityScore[]
+  statements        Statement[]
+  votes             Vote[]
 }
 
 model Vote {
-  id           String     @id @default(cuid())
-  politician   Politician @relation(fields: [politicianId], references: [id])
+  id           String                   @id @default(cuid())
   politicianId String
   bill         String
   billId       String?
@@ -44,69 +41,60 @@ model Vote {
   vote         String
   date         DateTime
   description  String
-
-  alignments VoteStatementAlignment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  politician   Politician               @relation(fields: [politicianId], references: [id])
+  alignments   VoteStatementAlignment[]
 }
 
 model Statement {
-  id           String     @id @default(cuid())
-  politician   Politician @relation(fields: [politicianId], references: [id])
+  id           String                   @id @default(cuid())
   politicianId String
   content      String
   issue        String
   source       String?
   date         DateTime?
-
-  alignments VoteStatementAlignment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  politician   Politician               @relation(fields: [politicianId], references: [id])
+  alignments   VoteStatementAlignment[]
 }
 
 model VoteStatementAlignment {
   id          String    @id @default(cuid())
-  vote        Vote      @relation(fields: [voteId], references: [id])
   voteId      String
-  statement   Statement @relation(fields: [statementId], references: [id])
   statementId String
   aligned     Boolean
   explanation String
-
-  createdAt DateTime @default(now())
+  createdAt   DateTime  @default(now())
+  statement   Statement @relation(fields: [statementId], references: [id])
+  vote        Vote      @relation(fields: [voteId], references: [id])
 }
 
 model Donor {
-  id       String @id @default(cuid())
-  name     String
-  industry String
-  type     String
-
+  id            String              @id @default(cuid())
+  name          String
+  industry      String
+  type          String
+  createdAt     DateTime            @default(now())
   contributions DonorContribution[]
-
-  createdAt DateTime @default(now())
 }
 
 model DonorContribution {
   id           String     @id @default(cuid())
-  donor        Donor      @relation(fields: [donorId], references: [id])
   donorId      String
-  politician   Politician @relation(fields: [politicianId], references: [id])
   politicianId String
   amount       Float
   year         Int
   cycle        String?
-
-  createdAt DateTime @default(now())
+  createdAt    DateTime   @default(now())
+  donor        Donor      @relation(fields: [donorId], references: [id])
+  politician   Politician @relation(fields: [politicianId], references: [id])
 }
 
 model IntegrityScore {
-  id           String     @id @default(cuid())
-  politician   Politician @relation(fields: [politicianId], references: [id])
-  politicianId String
-
+  id             String     @id @default(cuid())
+  politicianId   String
   integrityScore Float
   sleazeScore    Float
   alignmentRate  Float
@@ -114,37 +102,28 @@ model IntegrityScore {
   flipFrequency  Float
   partySpectrum  Float
   integrityAxis  Float
-
-  calculatedAt DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  calculatedAt   DateTime   @default(now())
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  politician     Politician @relation(fields: [politicianId], references: [id])
 }
 
 model BarnacleScore {
-  id           String     @id @default(cuid())
-  politician   Politician @relation(fields: [politicianId], references: [id])
-  politicianId String
-
-  // Composite scores
-  barnacleScore         Float   // 0–100 (higher = more barnacled/entrenched)
-  citizenStatesmanScore Float   // 0–100 (higher = better citizen statesman)
-
-  // Raw inputs used in calculation
-  tenureYears        Int     // total years across all elected offices
-  privateCareerYears Int     // years in private sector before first office
-  citizenRatio       Float   // privateCareerYears / totalAdultYears (post-age-22)
-
-  // Sub-scores (components of barnacleScore)
-  tenureScore        Float   // 0–25: accelerating curve on years in office
-  citizenRatioScore  Float   // 0–20: penalty for career-politician trajectory
-  wealthGapScore     Float   // 0–25: net worth vs. cumulative salary ceiling
-  revolvingDoorScore Float   // 0–15: staff/lobbyist churn signal
-  entrenchmentScore  Float   // 0–15: electoral margins, unopposed primaries
-
-  // Claude-generated explanation
-  aiNarrative String?
-
-  calculatedAt DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                    String     @id @default(cuid())
+  politicianId          String
+  barnacleScore         Float
+  citizenStatesmanScore Float
+  tenureYears           Int
+  privateCareerYears    Int
+  citizenRatio          Float
+  tenureScore           Float
+  citizenRatioScore     Float
+  wealthGapScore        Float
+  revolvingDoorScore    Float
+  entrenchmentScore     Float
+  aiNarrative           String?
+  calculatedAt          DateTime   @default(now())
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  politician            Politician @relation(fields: [politicianId], references: [id])
 }
